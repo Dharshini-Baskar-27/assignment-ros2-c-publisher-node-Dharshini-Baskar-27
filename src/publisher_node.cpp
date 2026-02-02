@@ -8,32 +8,37 @@
 
 using namespace std::chrono_literals;
 
-/*
- * TODO: Create a Class named 'PublisherNode' that inherits from rclcpp::Node.
- * Requirements:
- * 1. The constructor should name the node "publisher_node".
- * 2. Create a publisher to topic "/counter" with message type std_msgs::msg::String.
- * 3. Create a timer that triggers every 500ms.
- * 4. The timer callback should:
- *    - Increment a counter (starting from 0)
- *    - Create a message with format "Count: X" where X is the counter
- *    - Publish the message
- *    - Log using RCLCPP_INFO: "Publishing: 'Count: X'"
- */
-
 class PublisherNode : public rclcpp::Node
 {
 public:
     PublisherNode()
         : Node("publisher_node"), count_(0)
     {
-        // TODO: Create the publisher here
-
-        // TODO: Initialize the timer here
+        // Create publisher to topic "/chatter"
+        publisher_ = this->create_publisher<std_msgs::msg::String>("/chatter", 10);
+        
+        // Create timer that triggers every 500ms
+        timer_ = this->create_wall_timer(
+            500ms,
+            std::bind(&PublisherNode::timer_callback, this)
+        );
+        
+        RCLCPP_INFO(this->get_logger(), "Publisher node started. Publishing to /chatter every 500ms");
     }
 
 private:
-    // TODO: Define the timer_callback function here
+    void timer_callback()
+    {
+        // Create message with format "Count: X"
+        auto message = std_msgs::msg::String();
+        message.data = "Count: " + std::to_string(count_++);
+        
+        // Log using RCLCPP_INFO
+        RCLCPP_INFO(this->get_logger(), "Publishing: '%s'", message.data.c_str());
+        
+        // Publish the message
+        publisher_->publish(message);
+    }
 
     rclcpp::TimerBase::SharedPtr timer_;
     rclcpp::Publisher<std_msgs::msg::String>::SharedPtr publisher_;
